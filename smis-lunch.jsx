@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { createRoot } from "react-dom/client";
 
-import aug2026 from "./lunch-2026-08.json";
-import sep2026 from "./lunch-2026-09.json";
+import aug2026 from "./data/lunch-2026-08.json";
+import sep2026 from "./data/lunch-2026-09.json";
 
 /* 内置数据：加新月份时在这里追加一行 import + 放进 SEED */
 const SEED = [aug2026, sep2026];
@@ -555,26 +555,25 @@ function Settings({ months, localMonths, setLocalMonths, notes, setNotes, prefs,
 
   return (
     <div
+      className="sheet-wrap"
       style={{
         position: "fixed",
         inset: 0,
         background: "rgba(58,42,18,.45)",
         display: "flex",
-        alignItems: "flex-end",
         justifyContent: "center",
         zIndex: 50,
       }}
       onClick={onClose}
     >
       <div
+        className="sheet"
         onClick={(e) => e.stopPropagation()}
         style={{
           background: C.paper,
           width: "100%",
           maxWidth: 560,
-          maxHeight: "88vh",
           overflowY: "auto",
-          borderRadius: "18px 18px 0 0",
           padding: 16,
           boxSizing: "border-box",
         }}

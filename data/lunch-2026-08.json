@@ -1,0 +1,120 @@
+{
+  "month": "2026-08",
+  "school": "St. Mary's International School",
+  "supplier": "Cezars Kitchen",
+  "source": "cezars-202608-09.pdf",
+  "days": [
+    { "date": "2026-08-03", "type": "closed", "label": "Summer Adventure", "labelZh": "暑期活动" },
+    { "date": "2026-08-04", "type": "closed", "label": "Summer Adventure", "labelZh": "暑期活动" },
+    { "date": "2026-08-05", "type": "closed", "label": "Summer Adventure", "labelZh": "暑期活动" },
+    { "date": "2026-08-06", "type": "closed", "label": "Summer Adventure", "labelZh": "暑期活动" },
+    { "date": "2026-08-07", "type": "closed", "label": "Summer Adventure", "labelZh": "暑期活动" },
+    { "date": "2026-08-10", "type": "closed", "label": "No School", "labelZh": "不上课" },
+    { "date": "2026-08-11", "type": "closed", "label": "No School", "labelZh": "不上课" },
+    { "date": "2026-08-12", "type": "closed", "label": "No School", "labelZh": "不上课" },
+    { "date": "2026-08-13", "type": "closed", "label": "No School", "labelZh": "不上课" },
+    { "date": "2026-08-14", "type": "closed", "label": "No School", "labelZh": "不上课" },
+    { "date": "2026-08-17", "type": "closed", "label": "No School", "labelZh": "不上课" },
+    { "date": "2026-08-18", "type": "closed", "label": "No School", "labelZh": "不上课" },
+    { "date": "2026-08-19", "type": "closed", "label": "No School", "labelZh": "不上课" },
+    { "date": "2026-08-20", "type": "closed", "label": "No School", "labelZh": "不上课" },
+    { "date": "2026-08-21", "type": "closed", "label": "No School", "labelZh": "不上课" },
+    {
+      "date": "2026-08-24",
+      "type": "menu",
+      "kcal": 963,
+      "protein": 52.7,
+      "allergens": ["DAIRY", "WHEAT", "SOY"],
+      "items": [
+        { "kind": "main", "en": "Chicken Fajitas", "zh": "墨西哥鸡肉法士达" },
+        { "kind": "veg", "en": "Vegetable Bean Tacos", "zh": "蔬菜豆子塔可" },
+        { "kind": "carb", "en": "Flour Tortilla w. Half Rice", "zh": "墨西哥薄饼 + 半份白饭" },
+        { "kind": "side", "en": "Roasted Corn w. Tomato Salsa", "zh": "烤玉米配番茄莎莎" },
+        { "kind": "salad", "en": "Mixed Green Salad", "zh": "综合生菜沙拉" },
+        { "kind": "drink", "en": "Drink", "zh": "饮料" },
+        { "kind": "dessert", "en": "Fruit Crumble", "zh": "水果酥粒派" }
+      ]
+    },
+    {
+      "date": "2026-08-25",
+      "type": "menu",
+      "kcal": 943,
+      "protein": 36.5,
+      "kcalNote": "PDF 印为 9433kcal，按 943kcal 处理",
+      "allergens": ["EGG", "DAIRY", "WHEAT"],
+      "items": [
+        { "kind": "main", "en": "Meatball Pasta", "zh": "肉丸意面" },
+        { "kind": "veg", "en": "Zucchini Meatball Pasta", "zh": "西葫芦丸子意面" },
+        { "kind": "carb", "en": "Ciabatta Bread", "zh": "恰巴塔面包" },
+        { "kind": "side", "en": "Broccoli w. Carrot", "zh": "西兰花配胡萝卜" },
+        { "kind": "salad", "en": "Mixed Green Salad", "zh": "综合生菜沙拉" },
+        { "kind": "drink", "en": "Drink", "zh": "饮料" },
+        { "kind": "dessert", "en": "Peaches w. Raspberry Sauce", "zh": "黄桃配覆盆子酱" }
+      ]
+    },
+    {
+      "date": "2026-08-26",
+      "type": "menu",
+      "kcal": 987,
+      "protein": 32.1,
+      "allergens": ["EGG", "DAIRY", "WHEAT", "FISH", "SOY"],
+      "items": [
+        { "kind": "main", "en": "Fish Fingers w. Tartar Sauce", "zh": "炸鱼条配塔塔酱" },
+        { "kind": "veg", "en": "Crispy Lemon Pepper Tofu", "zh": "香脆柠檬胡椒豆腐" },
+        { "kind": "carb", "en": "White Rice", "zh": "白饭" },
+        { "kind": "side", "en": "Ratatouille", "zh": "普罗旺斯炖菜" },
+        { "kind": "salad", "en": "Mixed Green Salad", "zh": "综合生菜沙拉" },
+        { "kind": "drink", "en": "Drink", "zh": "饮料" },
+        { "kind": "dessert", "en": "Chocolate Cake", "zh": "巧克力蛋糕" }
+      ]
+    },
+    {
+      "date": "2026-08-27",
+      "type": "menu",
+      "kcal": 952,
+      "protein": 23.0,
+      "allergens": ["EGG", "DAIRY", "WHEAT"],
+      "items": [
+        { "kind": "main", "en": "Beef Curry", "zh": "牛肉咖喱" },
+        { "kind": "veg", "en": "Chick Pea Curry", "zh": "鹰嘴豆咖喱" },
+        { "kind": "carb", "en": "White Rice", "zh": "白饭" },
+        { "kind": "side", "en": "Turmeric Cauliflower", "zh": "姜黄花椰菜" },
+        { "kind": "salad", "en": "Mixed Green Salad", "zh": "综合生菜沙拉" },
+        { "kind": "drink", "en": "Drink", "zh": "饮料" },
+        { "kind": "dessert", "en": "Mixed Fruits (Pineapple, Melon, Grape, Apple)", "zh": "综合水果（菠萝、蜜瓜、葡萄、苹果）" }
+      ]
+    },
+    {
+      "date": "2026-08-28",
+      "type": "menu",
+      "kcal": 878,
+      "protein": 36.9,
+      "allergens": ["EGG", "DAIRY", "WHEAT", "SOY"],
+      "items": [
+        { "kind": "main", "en": "Barbeque Chicken", "zh": "烧烤鸡" },
+        { "kind": "veg", "en": "Grilled Vegetable & White Bean Casserole", "zh": "烤蔬菜白芸豆焗菜" },
+        { "kind": "carb", "en": "Mac N Cheese w. Half Rice", "zh": "芝士通心粉 + 半份白饭" },
+        { "kind": "side", "en": "Buttered Corn w. Asparagus", "zh": "黄油玉米配芦笋" },
+        { "kind": "salad", "en": "Mix Green Salad", "zh": "综合生菜沙拉" },
+        { "kind": "drink", "en": "Drink", "zh": "饮料" },
+        { "kind": "dessert", "en": "Fruits Jelly", "zh": "水果啫喱" }
+      ]
+    },
+    {
+      "date": "2026-08-31",
+      "type": "menu",
+      "kcal": 1153,
+      "protein": 45.5,
+      "allergens": ["EGG", "DAIRY", "WHEAT"],
+      "items": [
+        { "kind": "main", "en": "Chicken Tetrazzini Pasta", "zh": "奶油鸡肉意面" },
+        { "kind": "veg", "en": "Pasta w. Chick Peas in Pomodoro", "zh": "番茄鹰嘴豆意面" },
+        { "kind": "carb", "en": "Garlic Breadsticks", "zh": "蒜香面包棒" },
+        { "kind": "side", "en": "Grilled Zucchini w. Pesto", "zh": "青酱烤西葫芦" },
+        { "kind": "salad", "en": "Mixed Green Salad", "zh": "综合生菜沙拉" },
+        { "kind": "drink", "en": "Drink", "zh": "饮料" },
+        { "kind": "dessert", "en": "Chocolate Mousse", "zh": "巧克力慕斯" }
+      ]
+    }
+  ]
+}
