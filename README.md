@@ -25,11 +25,11 @@ assets/                 图标
 
 **正式（有电脑时）**
 1. 把 JSON 存成 `data/lunch-YYYY-MM.json`
-2. 在 `smis-lunch.jsx` 顶部加两行：
+2. 在 `smis-lunch.jsx` 顶部加一行 import，并把它加进 `SEED`：
 
 ```js
-import oct2026 from "./data/lunch-2026-10.json";
-const SEED = [aug2026, sep2026, oct2026];
+import nov2026 from "./data/lunch-2026-11.json";
+const SEED = [aug2026, sep2026, oct2026, nov2026];
 ```
 
 3. 重新打包：
@@ -71,6 +71,14 @@ npx esbuild smis-lunch.jsx --bundle --minify --loader:.json=json \
 ```
 
 可选字段：`event` / `eventZh`（当天主题，如 Coconut Day）、`staple`（`"ok"` 或 `"warn"`，手动覆盖主食判定）、`kcalNote`。
+
+## 菜品 emoji
+
+每一行的图标由菜名自动匹配（`smis-lunch.jsx` 顶部的 `RULES` / `DESSERT_RULES`），从具体到笼统，命中即停。甜点单独一套规则，所以 Carrot Cake 是 🍰 不是 🥕，Apple Wedges 是 🍎 不是 🍟，Chocolate Cake 单独用 🍫。加了新菜名觉得图标不对，调这两张表的顺序即可。
+
+## 图标
+
+`assets/` 里五个文件由 `mkicons_final.py` 生成，方角全出血（圆角交给系统切）。版式取自课表 app 的实测比例，两个图标并排是一套：横杠宽 0.438S、高 0.0547S、顶边 0.725S，文字底边 0.561S。配色 #FFF0C2 / #3A2A12 / #F2A900，字体 Archivo 700（favicon.svg 已转成路径，不依赖字体加载）。
 
 ## 自备主食的判定
 

@@ -3,10 +3,11 @@ import { createRoot } from "react-dom/client";
 
 import aug2026 from "./data/lunch-2026-08.json";
 import sep2026 from "./data/lunch-2026-09.json";
+import oct2026 from "./data/lunch-2026-10.json";
 
 /* 内置数据：加新月份时在这里追加一行 import + 放进 SEED */
-const SEED = [aug2026, sep2026];
-const SEED_VERSION = 1;
+const SEED = [aug2026, sep2026, oct2026];
+const SEED_VERSION = 2;
 
 /* ---------------------------------------------------------------- 主题 */
 const C = {
@@ -37,6 +38,78 @@ const KIND_LABEL = {
   drink: "饮料",
   dessert: "甜点",
 };
+
+/* 按菜名内容挑 emoji：甜点单独一套规则，避免「Carrot Cake」被读成胡萝卜 */
+const DESSERT_RULES = [
+  [/chocolate.*(cake|brownie)|brownie/i, "\u{1F36B}"],
+  [/cake/i, "\u{1F370}"],
+  [/crumble|pie|tart/i, "\u{1F967}"],
+  [/jelly|panna cotta|mousse|bavarian|annin|pudding|custard|tapioca/i, "\u{1F36E}"],
+  [/chocolate/i, "\u{1F36B}"],
+  [/mixed fruit/i, "\u{1F353}"],
+  [/watermelon/i, "\u{1F349}"],
+  [/pineapple/i, "\u{1F34D}"],
+  [/apple/i, "\u{1F34E}"],
+  [/peach|pear/i, "\u{1F351}"],
+  [/banana/i, "\u{1F34C}"],
+  [/mikan|orange/i, "\u{1F34A}"],
+  [/grape/i, "\u{1F347}"],
+  [/melon/i, "\u{1F348}"],
+  [/fruit/i, "\u{1F353}"],
+];
+
+const RULES = [
+  [/half rice/i, "\u{1F35A}"],
+  [/salad|tabbouleh/i, "\u{1F957}"],
+  [/pizza/i, "\u{1F355}"],
+  [/burger|hamburg/i, "\u{1F354}"],
+  [/taco|tortilla|fajita/i, "\u{1F32E}"],
+  [/curry|makhani/i, "\u{1F35B}"],
+  [/gyoza|shumai|dumpling|spring roll/i, "\u{1F95F}"],
+  [/lasagna|pasta|penne|spaghetti|tetrazzini|noodle|yakisoba|boscaiola|arrabbiata|macaroni|mac n cheese/i, "\u{1F35D}"],
+  [/sushi|onigiri/i, "\u{1F359}"],
+  [/rice|cous ?cous/i, "\u{1F35A}"],
+  [/focaccia|ciabatta|bread|roll|bun|breadstick|baguette/i, "\u{1F956}"],
+  [/fries|wedges|hash brown/i, "\u{1F35F}"],
+  [/croquette|korokke/i, "\u{1F954}"],
+  [/potato/i, "\u{1F954}"],
+  [/whitefish|fish|tuna|salmon|cod/i, "\u{1F41F}"],
+  [/shrimp|prawn|shellfish/i, "\u{1F364}"],
+  [/chicken|teriyaki|soboro|tandoori/i, "\u{1F357}"],
+  [/beef|steak|pastrami|hayashi|meatball|meat lover|bolognese|salisbury/i, "\u{1F969}"],
+  [/bacon|ham\b/i, "\u{1F953}"],
+  [/pork|butadon|shogayaki/i, "\u{1F356}"],
+  [/tofu|aburaage|atsuage|soy meat|chick ?pea|garbanzo|bean|legume|lentil|edamame|\bpeas?\b/i, "\u{1FAD8}"],
+  [/\begg\b|eggs\b|omelet|scramble/i, "\u{1F95A}"],
+  [/broccoli|cauliflower/i, "\u{1F966}"],
+  [/carrot/i, "\u{1F955}"],
+  [/corn/i, "\u{1F33D}"],
+  [/spinach|greens|okra|asparagus|cabbage/i, "\u{1F96C}"],
+  [/pumpkin|squash|jack o.?lantern/i, "\u{1F383}"],
+  [/zucchini|eggplant/i, "\u{1F346}"],
+  [/mushroom/i, "\u{1F344}"],
+  [/tomato|ratatouille|salsa/i, "\u{1F345}"],
+  [/stew|casserole|soup|simmered|loaf/i, "\u{1F372}"],
+  [/vegetable|veggie/i, "\u{1F96C}"],
+  [/drink|juice|milk/i, "\u{1F964}"],
+];
+
+const KIND_EMOJI = {
+  main: "\u{1F37D}\uFE0F",
+  veg: "\u{1F331}",
+  carb: "\u{1F35A}",
+  side: "\u{1F955}",
+  salad: "\u{1F957}",
+  drink: "\u{1F964}",
+  dessert: "\u{1F370}",
+};
+
+function emojiFor(item) {
+  const t = item.en || "";
+  const list = item.kind === "dessert" ? DESSERT_RULES : RULES;
+  for (const [re, e] of list) if (re.test(t)) return e;
+  return KIND_EMOJI[item.kind] || KIND_EMOJI.main;
+}
 
 const ALLERGEN_ZH = {
   EGG: "蛋",
@@ -183,25 +256,42 @@ function WarnRibbon({ reason }) {
   );
 }
 
-function Dish({ item, showEn, tone }) {
+function Row({ item, showZh, label, icon, big }) {
   return (
-    <div style={{ marginBottom: 8 }}>
-      <div
+    <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+      <span
+        title={label}
+        aria-label={label}
+        role="img"
         style={{
-          fontSize: tone === "big" ? 19 : 14.5,
-          fontWeight: tone === "big" ? 700 : 500,
-          color: C.ink,
-          letterSpacing: 0.2,
-          lineHeight: 1.35,
+          fontSize: big ? 20 : 17,
+          lineHeight: 1.15,
+          width: 26,
+          flexShrink: 0,
+          textAlign: "center",
+          paddingTop: big ? 1 : 2,
         }}
       >
-        {item.zh}
-      </div>
-      {showEn && (
-        <div style={{ fontSize: 11.5, color: C.sub, marginTop: 1, lineHeight: 1.35 }}>
+        {icon}
+      </span>
+      <div style={{ flex: 1 }}>
+        <div
+          style={{
+            fontSize: big ? 18 : 15,
+            fontWeight: big ? 700 : 600,
+            color: C.ink,
+            lineHeight: 1.28,
+            letterSpacing: -0.1,
+          }}
+        >
           {item.en}
         </div>
-      )}
+        {showZh && (
+          <div style={{ fontSize: 11.5, color: C.sub, marginTop: 1, lineHeight: 1.35 }}>
+            {item.zh}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -252,7 +342,7 @@ function NoteBox({ date, value, onChange }) {
   );
 }
 
-function DayCard({ date, day, note, onNote, showEn, showVeg, isToday }) {
+const DayCard = React.memo(function DayCard({ date, day, note, onNote, showZh, showVeg, isToday }) {
   const d = parse(date);
   const st = stapleStatus(day);
   const items = (day?.items || []).filter((i) => i.kind !== "drink");
@@ -315,52 +405,32 @@ function DayCard({ date, day, note, onNote, showEn, showVeg, isToday }) {
       {day?.type === "menu" && (
         <>
           {st && !st.ok && <WarnRibbon reason={st.reason} />}
-          {main && <Dish item={main} showEn={showEn} tone="big" />}
-          {veg && (
-            <div style={{ display: "flex", gap: 7, marginBottom: 8 }}>
-              <span style={{ paddingTop: 2 }}>
-                <Chip bg={C.vegBg} fg={C.veg} size={10}>素</Chip>
-              </span>
-              <div style={{ flex: 1 }}>
-                <Dish item={veg} showEn={showEn} />
-              </div>
-            </div>
-          )}
-          <div style={{ borderTop: `1px solid ${C.line}`, paddingTop: 9, marginTop: 4 }}>
-            {rest.map((it, i) => (
-              <div key={i} style={{ display: "flex", gap: 8, marginBottom: 7 }}>
-                <span
-                  style={{
-                    fontSize: 10.5,
-                    color: it.kind === "carb" && st && !st.ok ? C.warn : C.sub,
-                    fontWeight: 700,
-                    minWidth: 26,
-                    paddingTop: 2,
-                  }}
-                >
-                  {KIND_LABEL[it.kind] || ""}
-                </span>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 13.5, color: C.ink, lineHeight: 1.35 }}>{it.zh}</div>
-                  {showEn && (
-                    <div style={{ fontSize: 11, color: C.sub, lineHeight: 1.3 }}>{it.en}</div>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
+          {main && <Row item={main} showZh={showZh} label={KIND_LABEL.main} icon={emojiFor(main)} big />}
+          {veg && <Row item={veg} showZh={showZh} label={KIND_LABEL.veg} icon={KIND_EMOJI.veg} />}
+          {rest.map((it, i) => (
+            <Row
+              key={i}
+              item={it}
+              showZh={showZh}
+              label={KIND_LABEL[it.kind] || ""}
+              icon={emojiFor(it)}
+            />
+          ))}
           <div
             style={{
               display: "flex",
               flexWrap: "wrap",
               gap: 4,
               alignItems: "center",
-              marginTop: 8,
+              marginTop: 10,
+              paddingTop: 9,
+              borderTop: `1px solid ${C.line}`,
             }}
           >
             {(day.allergens || []).map((a) => (
               <Chip key={a} bg="#FBF3E2" fg={C.sub} size={10}>
-                {ALLERGEN_ZH[a] || a}
+                {a}
+                {showZh && ALLERGEN_ZH[a] ? ` ${ALLERGEN_ZH[a]}` : ""}
               </Chip>
             ))}
             <span style={{ flex: 1 }} />
@@ -374,7 +444,7 @@ function DayCard({ date, day, note, onNote, showEn, showVeg, isToday }) {
       <NoteBox date={date} value={note} onChange={onNote} />
     </div>
   );
-}
+});
 
 /* --------------------------------------------------------- 月视图 */
 function MonthView({ months, month, setMonth, dayMap, notes, onPick, today }) {
@@ -386,7 +456,9 @@ function MonthView({ months, month, setMonth, dayMap, notes, onPick, today }) {
   const endM = new Date(first.getFullYear(), first.getMonth() + 1, 0);
   let cur = start;
   while (parse(cur) <= endM) {
-    for (let i = 0; i < 5; i++) cells.push(addDays(cur, i));
+    const row = [0, 1, 2, 3, 4].map((i) => addDays(cur, i));
+    /* 月初落在周末时，头一行整排都是上个月，跳过 */
+    if (cells.length || row.some((d) => monthOf(d) === month)) cells.push(...row);
     cur = addDays(cur, 7);
   }
   const warnDays = cells.filter((d) => {
@@ -435,7 +507,7 @@ function MonthView({ months, month, setMonth, dayMap, notes, onPick, today }) {
               key={d}
               onClick={() => onPick(d)}
               style={{
-                height: 78,
+                height: 80,
                 boxSizing: "border-box",
                 display: "flex",
                 flexDirection: "column",
@@ -464,7 +536,19 @@ function MonthView({ months, month, setMonth, dayMap, notes, onPick, today }) {
                   />
                 )}
               </div>
-              <div style={{ fontSize: 10.5, color: day?.type === "closed" ? C.sub : C.ink, lineHeight: 1.25, marginTop: 2 }}>
+              <div
+                style={{
+                  fontSize: 10.5,
+                  fontWeight: day?.type === "closed" ? 400 : 600,
+                  color: day?.type === "closed" ? C.sub : C.ink,
+                  lineHeight: 1.28,
+                  marginTop: 2,
+                  display: "-webkit-box",
+                  WebkitLineClamp: 3,
+                  WebkitBoxOrient: "vertical",
+                  overflow: "hidden",
+                }}
+              >
                 {day?.type === "closed" ? day.labelZh || day.label : main?.zh || ""}
               </div>
             </button>
@@ -738,9 +822,9 @@ function Settings({ months, localMonths, setLocalMonths, notes, setNotes, prefs,
         {tab === "pref" && (
           <div>
             <Toggle
-              label="显示英文菜名"
-              on={prefs.showEn}
-              onClick={() => setPrefs({ ...prefs, showEn: !prefs.showEn })}
+              label="显示中文菜名"
+              on={prefs.showZh}
+              onClick={() => setPrefs({ ...prefs, showZh: !prefs.showZh })}
             />
             <div style={{ height: 8 }} />
             <Toggle
@@ -841,7 +925,7 @@ function Toggle({ label, on, onClick }) {
 function App() {
   const [localMonths, setLocalMonths] = useState([]);
   const [notes, setNotes] = useState({});
-  const [prefs, setPrefs] = useState({ showEn: true, showVeg: false });
+  const [prefs, setPrefs] = useState({ showZh: true, showVeg: false });
   const [ready, setReady] = useState(false);
   const [view, setView] = useState("week");
   const [showSet, setShowSet] = useState(false);
@@ -856,15 +940,12 @@ function App() {
   const today = iso(new Date());
   const keys = Object.keys(months).sort();
   const dates = Object.keys(dayMap).sort();
-  const startDate = dates.length
-    ? dayMap[today]
-      ? today
-      : today < dates[0]
-      ? dates[0]
-      : today > dates[dates.length - 1]
-      ? dates[dates.length - 1]
-      : today
-    : today;
+  /* 打开时停在今天；今天不是上学日（周末、假期、数据范围外）就顺延到下一个有菜单的日子 */
+  const startDate = !dates.length
+    ? today
+    : dayMap[today]
+    ? today
+    : dates.find((d) => d > today) || dates[dates.length - 1];
 
   const [focus, setFocus] = useState(startDate);
   const [month, setMonth] = useState(monthOf(startDate));
@@ -878,7 +959,7 @@ function App() {
       ]);
       if (m) try { setLocalMonths(JSON.parse(m)); } catch {}
       if (n) try { setNotes(JSON.parse(n)); } catch {}
-      if (p) try { setPrefs({ showEn: true, showVeg: false, ...JSON.parse(p) }); } catch {}
+      if (p) try { setPrefs({ showZh: true, showVeg: false, ...JSON.parse(p) }); } catch {}
       setReady(true);
     })();
   }, []);
@@ -897,26 +978,55 @@ function App() {
     });
   }, []);
 
-  /* 周视图：本周一至周五 */
-  const weekStart = mondayOf(focus);
-  const week = [0, 1, 2, 3, 4].map((i) => addDays(weekStart, i));
-  const scroller = useRef(null);
-  const scrolled = useRef(false);
-  useEffect(() => {
-    if (!ready || view !== "week" || scrolled.current || !scroller.current) return;
-    const i = week.indexOf(focus);
-    if (i > 0) {
-      const el = scroller.current.children[i];
-      if (el) scroller.current.scrollTo({ left: el.offsetLeft - 12, behavior: "auto" });
+  /* 周视图：所有上课日连成一条，可以从周五直接滑到下周一 */
+  const allDays = useMemo(() => {
+    if (!dates.length) return [];
+    const last = dates[dates.length - 1];
+    const out = [];
+    let cur = mondayOf(dates[0]);
+    while (cur <= last) {
+      for (let i = 0; i < 5; i++) out.push(addDays(cur, i));
+      cur = addDays(cur, 7);
     }
-    scrolled.current = true;
-  }, [ready, view, focus]);
+    while (out.length && !dayMap[out[out.length - 1]]) out.pop();
+    return out;
+  }, [dayMap]);
+
+  const scroller = useRef(null);
+  const [visIdx, setVisIdx] = useState(0);
+
+  const scrollToIdx = (i, behavior) => {
+    const sc = scroller.current;
+    const el = sc?.children[i];
+    if (!sc || !el) return;
+    sc.scrollTo({ left: el.offsetLeft - sc.children[0].offsetLeft, behavior });
+    setVisIdx(i);
+  };
+
+  useEffect(() => {
+    if (!ready || view !== "week" || !allDays.length) return;
+    const i = allDays.indexOf(focus);
+    scrollToIdx(i < 0 ? 0 : i, "auto");
+  }, [ready, view, focus, allDays.length]);
+
+  const onStripScroll = () => {
+    const sc = scroller.current;
+    const a = sc?.children[0];
+    if (!sc || !a) return;
+    const step = sc.children[1] ? sc.children[1].offsetLeft - a.offsetLeft : a.offsetWidth + 10;
+    const i = Math.round(sc.scrollLeft / step);
+    setVisIdx(Math.max(0, Math.min(allDays.length - 1, i)));
+  };
 
   const jumpWeek = (n) => {
-    setFocus(addDays(weekStart, n * 7));
-    scrolled.current = false;
-    if (scroller.current) scroller.current.scrollTo({ left: 0, behavior: "auto" });
+    const i = Math.max(0, Math.min(allDays.length - 1, visIdx + n * 5));
+    if (allDays[i] === focus) scrollToIdx(i, "smooth");
+    else setFocus(allDays[i]);
   };
+
+  const visDate = allDays[visIdx] || focus;
+  const visWeekStart = mondayOf(visDate);
+  const homeIdx = allDays.indexOf(startDate);
 
   if (!ready) return <div style={{ ...shell, padding: 40, color: C.sub }}>载入中…</div>;
 
@@ -936,7 +1046,7 @@ function App() {
       >
         <div>
           <div style={{ fontFamily: DISPLAY, fontSize: 22, fontWeight: 700, lineHeight: 1 }}>
-            SMIS 午餐
+            SMIS LUNCH
           </div>
           <div style={{ fontSize: 10.5, color: C.sub, letterSpacing: 1, marginTop: 3 }}>
             CEZARS KITCHEN
@@ -994,14 +1104,37 @@ function App() {
       {view === "week" ? (
         <>
           <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "2px 0 10px" }}>
-            <NavBtn onClick={() => jumpWeek(-1)}>‹</NavBtn>
+            <NavBtn disabled={visIdx <= 0} onClick={() => jumpWeek(-1)}>‹</NavBtn>
             <div style={{ flex: 1, textAlign: "center", fontSize: 13, color: C.sub, fontWeight: 600 }}>
-              {fmtDay(weekStart)} – {fmtDay(addDays(weekStart, 4))}
+              {fmtDay(visWeekStart)} – {fmtDay(addDays(visWeekStart, 4))}
             </div>
-            <NavBtn onClick={() => jumpWeek(1)}>›</NavBtn>
+            {homeIdx >= 0 && (
+              <button
+                onClick={() => { setFocus(startDate); scrollToIdx(homeIdx, "smooth"); }}
+                disabled={visIdx === homeIdx}
+                aria-label="回到今天"
+                style={{
+                  border: `1px solid ${visIdx === homeIdx ? C.line : C.gold}`,
+                  background: visIdx === homeIdx ? "transparent" : C.card,
+                  color: visIdx === homeIdx ? C.sub : C.ink,
+                  borderRadius: 10,
+                  height: 34,
+                  padding: "0 11px",
+                  fontSize: 12.5,
+                  fontWeight: 700,
+                  cursor: visIdx === homeIdx ? "default" : "pointer",
+                  fontFamily: BODY,
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {dayMap[today] ? "今天" : "下个上学日"}
+              </button>
+            )}
+            <NavBtn disabled={visIdx >= allDays.length - 1} onClick={() => jumpWeek(1)}>›</NavBtn>
           </div>
           <div
             ref={scroller}
+            onScroll={onStripScroll}
             style={{
               display: "flex",
               gap: 10,
@@ -1011,7 +1144,7 @@ function App() {
               WebkitOverflowScrolling: "touch",
             }}
           >
-            {week.map((d) => (
+            {allDays.map((d) => (
               <div
                 key={d}
                 style={{
@@ -1024,7 +1157,7 @@ function App() {
                   day={dayMap[d]}
                   note={notes[d]}
                   onNote={setNote}
-                  showEn={prefs.showEn}
+                  showZh={prefs.showZh}
                   showVeg={prefs.showVeg}
                   isToday={d === today}
                 />
@@ -1040,7 +1173,7 @@ function App() {
           dayMap={dayMap}
           notes={notes}
           today={today}
-          onPick={(d) => { setFocus(d); setView("week"); scrolled.current = false; }}
+          onPick={(d) => { setFocus(d); setView("week"); }}
         />
       )}
 
