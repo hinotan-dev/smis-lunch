@@ -260,7 +260,7 @@ function WarnRibbon({ reason }) {
   );
 }
 
-function Row({ item, showZh, label, icon, big }) {
+function Row({ item, showZh, label, icon, big, veg }) {
   return (
     <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
       <span
@@ -269,7 +269,6 @@ function Row({ item, showZh, label, icon, big }) {
         role="img"
         style={{
           fontSize: big ? f(20) : f(20),
-          lineHeight: 1.15,
           width: 26,
           flexShrink: 0,
           textAlign: "center",
@@ -283,8 +282,8 @@ function Row({ item, showZh, label, icon, big }) {
           style={{
             fontSize: big ? f(22) : f(18),
             fontWeight: big ? 600 : 600,
-            color: big ? C.brown : C.ink,
-            lineHeight: 1.3,
+            color: big && veg ? C.veg : big ? C.brown : C.ink,
+            lineHeight: 1.6,
             letterSpacing: -0.1,
           }}
         >
@@ -410,8 +409,8 @@ const DayCard = React.memo(function DayCard({ date, day, note, onNote, showZh, s
       {day?.type === "menu" && (
         <>
           {st && !st.ok && <WarnRibbon reason={st.reason} />}
-          {main && <Row item={main} showZh={showZh} label={KIND_LABEL.main} icon={emojiFor(main)} big />}
-          {veg && <Row item={veg} showZh={showZh} label={KIND_LABEL.veg} icon={KIND_EMOJI.veg} />}
+          {main && !veg && <Row item={main} showZh={showZh} label={KIND_LABEL.main} icon={emojiFor(main)} big />}
+          {veg && <Row item={veg} showZh={showZh} label={KIND_LABEL.veg} icon={KIND_EMOJI.veg} big veg />}
           {rest.map((it, i) => (
             <Row
               key={i}
@@ -664,11 +663,12 @@ function Settings({ months, localMonths, setLocalMonths, notes, setNotes, prefs,
           maxWidth: 560,
           overflowY: "auto",
           padding: 16,
+          paddingBottom: 48,
           boxSizing: "border-box",
         }}
       >
         <div style={{ display: "flex", alignItems: "center", marginBottom: 12 }}>
-          <div style={{ fontFamily: DISPLAY, fontSize: f(20), fontWeight: 700, flex: 1 }}>设置</div>
+          <div style={{ fontFamily: DISPLAY, fontSize: f(20), fontWeight: 700, flex: 1 }}>SETTINGS</div>
           <button
             onClick={onClose}
             style={{ border: "none", background: "none", fontSize: f(20), cursor: "pointer", color: C.sub }}
