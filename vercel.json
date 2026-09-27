@@ -1,7 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": null,
-  "buildCommand": "echo 'index.html 已经是打包产物，Vercel 不用构建'",
+  "buildCommand": "npm run build",
   "outputDirectory": ".",
   "cleanUrls": true
 }

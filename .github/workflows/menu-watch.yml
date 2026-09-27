@@ -71,11 +71,17 @@ jobs:
           # 没用 WIF 就在 Secrets 里放一个 ANTHROPIC_API_KEY，脚本会自动改走这条
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           CLAUDE_MODEL: ${{ vars.CLAUDE_MODEL || 'claude-opus-5' }}
+          VERIFY_MODEL: ${{ vars.VERIFY_MODEL || 'claude-sonnet-5' }}
+          PR_NOTES: /tmp/pr-notes.md
         run: |
           set -euo pipefail
+          : > /tmp/pr-notes.md
           for m in $MISSING; do
-            echo "::group::$m"
+            echo "::group::生成 $m"
             node scripts/generate-month.mjs "$PDF" "$m"
+            echo "::endgroup::"
+            echo "::group::复核 $m"
+            node scripts/verify-month.mjs "$PDF" "$m"
             echo "::endgroup::"
           done
           node scripts/build.mjs
@@ -85,7 +91,6 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           MONTHS: ${{ steps.check.outputs.missing }}
-          SUMMARY: ${{ steps.gen.outputs.summary }}
         run: |
           set -euo pipefail
           BRANCH="menu/$(echo "$MONTHS" | tr ' ' '-')"
@@ -103,10 +108,10 @@ jobs:
           git push -u origin "$BRANCH"
 
           {
-            printf '%s\n\n' "$SUMMARY"
+            cat /tmp/pr-notes.md
             printf -- '---\n\n'
             printf '自动抓取自 https://powerschool.smis.ac.jp/public/cezars.pdf\n\n'
-            printf '已通过机械校验：日期是工作日且属于本月、items 的 kind 顺序、中文非空、过敏原取值、热量区间。\n\n'
+            printf '已过机械校验（日期、items 顺序、中文非空、过敏原取值、热量区间），并由另一个模型重读 PDF 做了独立复核。\n\n'
             printf '**看 `data/` 里的 JSON 就行**，`index.html` 是打包产物，diff 很大但不用读。\n\n'
             printf '合并后 Vercel 会自动部署。\n'
           } > /tmp/pr-body.md

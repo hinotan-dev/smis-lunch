@@ -124,16 +124,19 @@ const knownNames = new Set(Object.keys(glossary));
 const fresh = [];
 for (const d of parsed.days) for (const it of d.items || []) if (!knownNames.has(it.en)) fresh.push(`${it.en} → ${it.zh}`);
 
-if (process.env.GITHUB_OUTPUT) {
+/* PR 正文由各步骤往同一个文件里追加，多个月份也能各写一段 */
+if (process.env.PR_NOTES) {
   const { appendFileSync } = await import("node:fs");
-  const summary = [
-    `**${month}**：${r.menuDays} 天菜单，${r.closed} 天停课`,
+  appendFileSync(process.env.PR_NOTES, [
+    `### ${month}`,
     ``,
-    `需要自备主食 ${r.stapleWarn.length} 天：${r.stapleWarn.join("、") || "无"}`,
+    `${r.menuDays} 天菜单 · ${r.closed} 天停课 · 需自备主食 ${r.stapleWarn.length} 天`,
     ``,
-    `新出现的菜（${fresh.length} 道，译名请重点看）：`,
-    ...fresh.map((s) => `- ${s}`),
-  ].join("\n");
-  appendFileSync(process.env.GITHUB_OUTPUT, `summary<<SUMEOF\n${summary}\nSUMEOF\n`);
+    r.stapleWarn.length ? `自备主食：${r.stapleWarn.join("、")}` : `本月每天都有整份白饭`,
+    ``,
+    fresh.length ? `新出现的菜 ${fresh.length} 道（译名请重点看）：` : `本月没有新菜，译名全部沿用已有词典。`,
+    ...fresh.map((x) => `- ${x}`),
+    ``,
+  ].join("\n") + "\n");
 }
 console.log(`  新菜 ${fresh.length} 道`);
