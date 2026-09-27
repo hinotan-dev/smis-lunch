@@ -272,7 +272,6 @@ function Row({ item, showZh, label, icon, big, veg }) {
           width: 26,
           flexShrink: 0,
           textAlign: "center",
-          paddingTop: 2,
         }}
       >
         {icon}
@@ -283,8 +282,9 @@ function Row({ item, showZh, label, icon, big, veg }) {
             fontSize: big ? f(22) : f(18),
             fontWeight: 600,
             color: big ? (veg ? C.veg : C.brown) : C.ink,
-            lineHeight: 1.6,
+            lineHeight: 1.2,
             letterSpacing: -0.1,
+            paddingTop: 2,
           }}
         >
           {item.en}
@@ -1051,7 +1051,6 @@ function App() {
           alignItems: "center",
           gap: 10,
           padding: "14px 0 10px",
-          position: "sticky",
           top: 0,
           background: C.paper,
           zIndex: 10,
