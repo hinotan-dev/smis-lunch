@@ -1,13 +1,8 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { createRoot } from "react-dom/client";
 
-import aug2026 from "./data/lunch-2026-08.json";
-import sep2026 from "./data/lunch-2026-09.json";
-import oct2026 from "./data/lunch-2026-10.json";
-
-/* 内置数据：加新月份时在这里追加一行 import + 放进 SEED */
-const SEED = [aug2026, sep2026, oct2026];
-const SEED_VERSION = 2;
+/* 内置数据：data/ 里的月份由 scripts/gen-seed.mjs 自动收集，加月份不用改这里 */
+import { SEED, SEED_VERSION } from "./seed.generated.js";
 
 /* ---------------------------------------------------------------- 主题 */
 const C = {
@@ -330,8 +325,9 @@ function NoteBox({ date, value, onChange }) {
           border: `1px solid ${C.line}`,
           borderRadius: 10,
           background: "#FFFDF6",
-          padding: "8px 10px",
-          fontSize: 13.5,
+          padding: "9px 10px",
+          fontSize: 16,          /* iOS 上小于 16px 会在聚焦时自动放大且不会退回 */
+          lineHeight: 1.45,
           fontFamily: BODY,
           color: C.ink,
           resize: "vertical",
@@ -743,7 +739,8 @@ function Settings({ months, localMonths, setLocalMonths, notes, setNotes, prefs,
                 border: `1px solid ${C.line}`,
                 borderRadius: 10,
                 padding: 10,
-                fontSize: 12,
+                fontSize: 16,          /* 同上，避免 iOS 聚焦放大 */
+                lineHeight: 1.4,
                 fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
                 background: C.card,
                 color: C.ink,
@@ -941,11 +938,15 @@ function App() {
   const keys = Object.keys(months).sort();
   const dates = Object.keys(dayMap).sort();
   /* 打开时停在今天；今天不是上学日（周末、假期、数据范围外）就顺延到下一个有菜单的日子 */
+  /* 今天有数据就停在今天（哪怕是放假日，那张卡会说明为什么没有菜单）；
+     今天没有数据（周末、学年外）就跳到下一个真正有菜单的日子，别停在放假卡上 */
   const startDate = !dates.length
     ? today
     : dayMap[today]
     ? today
-    : dates.find((d) => d > today) || dates[dates.length - 1];
+    : dates.find((d) => d > today && dayMap[d].type === "menu") ||
+      dates.find((d) => d > today) ||
+      dates[dates.length - 1];
 
   const [focus, setFocus] = useState(startDate);
   const [month, setMonth] = useState(monthOf(startDate));
