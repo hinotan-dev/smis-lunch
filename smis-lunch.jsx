@@ -451,7 +451,7 @@ const DayCard = React.memo(function DayCard({ date, day, note, onNote, showZh, s
 });
 
 /* --------------------------------------------------------- 月视图 */
-function MonthView({ months, month, setMonth, dayMap, notes, onPick, today }) {
+function MonthView({ months, month, setMonth, dayMap, notes, onPick, today, showVeg }) {
   const keys = Object.keys(months).sort();
   const idx = keys.indexOf(month);
   const first = parse(month + "-01");
@@ -505,7 +505,10 @@ function MonthView({ months, month, setMonth, dayMap, notes, onPick, today }) {
           const inM = monthOf(d) === month;
           const st = stapleStatus(day);
           const hasNote = !!(notes[d] || "").trim();
-          const main = day?.items?.find((i) => i.kind === "main");
+          /* 和周视图保持一致：开了素食模式就显示素菜，不显示荤主菜 */
+          const main =
+            (showVeg && day?.items?.find((i) => i.kind === "veg")) ||
+            day?.items?.find((i) => i.kind === "main");
           return (
             <button
               key={d}
@@ -1184,6 +1187,7 @@ function App() {
           dayMap={dayMap}
           notes={notes}
           today={today}
+          showVeg={prefs.showVeg}
           onPick={(d) => { setFocus(d); setView("week"); }}
         />
       )}
