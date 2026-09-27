@@ -26,6 +26,7 @@ const C = {
   warnBg: "#FFE7D8",
   veg: "#5F7F32",
   vegBg: "#EFF4E4",
+  brown: "#AF6410",
 };
 
 const DISPLAY = "'Fraunces', 'Iowan Old Style', Georgia, serif";
@@ -267,7 +268,7 @@ function Row({ item, showZh, label, icon, big }) {
         aria-label={label}
         role="img"
         style={{
-          fontSize: big ? f(20) : f(17),
+          fontSize: big ? f(20) : f(20),
           lineHeight: 1.15,
           width: 26,
           flexShrink: 0,
@@ -280,17 +281,17 @@ function Row({ item, showZh, label, icon, big }) {
       <div style={{ flex: 1 }}>
         <div
           style={{
-            fontSize: big ? f(18) : f(15),
-            fontWeight: big ? 700 : 600,
-            color: C.ink,
-            lineHeight: 1.28,
+            fontSize: big ? f(22) : f(18),
+            fontWeight: big ? 600 : 600,
+            color: big ? C.brown : C.ink,
+            lineHeight: 1.3,
             letterSpacing: -0.1,
           }}
         >
           {item.en}
         </div>
         {showZh && (
-          <div style={{ fontSize: f(11.5), color: C.sub, marginTop: 1, lineHeight: 1.35 }}>
+          <div style={{ fontSize: f(14), color: C.sub, marginTop: 1, lineHeight: 1.5 }}>
             {item.zh}
           </div>
         )}
@@ -366,7 +367,7 @@ const DayCard = React.memo(function DayCard({ date, day, note, onNote, showZh, s
         boxSizing: "border-box",
       }}
     >
-      <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 10 }}>
+      <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 16 }}>
         <span
           style={{
             fontFamily: DISPLAY,
