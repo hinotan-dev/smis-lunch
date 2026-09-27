@@ -437,7 +437,7 @@
         {
           "kind": "main",
           "en": "Pork Yakiniku",
-          "zh": "日式烤肉猪肉"
+          "zh": "日式烤猪肉"
         },
         {
           "kind": "veg",
@@ -479,7 +479,8 @@
       "allergens": [
         "EGG",
         "DAIRY",
-        "WHEAT"
+        "WHEAT",
+        "SOY"
       ],
       "items": [
         {
