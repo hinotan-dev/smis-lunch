@@ -1151,6 +1151,7 @@ function App() {
               overflowX: "auto",
               scrollSnapType: "x mandatory",
               paddingBottom: 8,
+              marginRight: "var(--marginr)",
               WebkitOverflowScrolling: "touch",
             }}
           >
