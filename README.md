@@ -114,6 +114,8 @@ MENU_PDF=~/Downloads/cezars.pdf node scripts/check-months.mjs
 | `scripts/verify-month.mjs` | 独立复核：换**另一个模型**重读 PDF，比对英文菜名、过敏原、kcal、蛋白质，不一致的列进 PR 正文 |
 | `scripts/gen-seed.mjs` | 扫描 `data/` 生成 `seed.generated.js` |
 | `scripts/build.mjs` | gen-seed → esbuild → 内联进 `shell.html` → 写出 `index.html` |
+| `scripts/serve.mjs` | 本地开发服务器：静态托管 + 监听源码 + 自动刷新浏览器，对应 `npm run dev` |
+| `scripts/watch.mjs` | 只重新打包不起服务器，对应 `npm run watch` |
 
 ## 数据格式
 
@@ -187,12 +189,27 @@ const SCALE = 1;      // 1.1 = 整体大 10%
 改 `smis-lunch.jsx` 或 `shell.html` 之后必须重新打包：
 
 ```bash
+npm install      # 只需第一次
 npm run build
 ```
 
-然后 commit push，Vercel 会再打包一次。**只改 `data/` 里的 JSON 不用打包**，Vercel 自己会做。
+然后直接在浏览器打开 `index.html` 看效果，不用起服务器。满意了 commit push，Vercel 会再打包一次。
 
-本地想边改边看：`npm run build` 之后直接在浏览器打开 `index.html` 就行，不需要起服务器。
+调样式要反复改数字的话，开本地开发服务器：
+
+```bash
+npm run dev
+```
+
+它会静态托管仓库、监听源码、打包完**自动刷新浏览器**。启动后打印两个地址：`localhost` 给电脑，局域网 IP 给手机——这个 app 是手机优先的，连同一个 Wi-Fi 在真机上看比缩放浏览器窗口准。只想本机访问就 `HOST=127.0.0.1 npm run dev`，换端口用 `PORT=3000`。
+
+自动刷新的那段脚本是**发送时临时注入**的，不会写进 `index.html`，提交到仓库的产物始终干净。
+
+不需要服务器、只要改了就重新打包的话用 `npm run watch`，然后自己刷新 `file://` 打开的页面。
+
+走 http 还有个额外好处：`localStorage` 的行为和线上一致，测备注功能更准（`file://` 下各浏览器对它的处理不一样）。
+
+**只改 `data/` 里的 JSON 不用打包**——Vercel 自己会做，手机上改也行。
 
 ## 菜品 emoji
 
