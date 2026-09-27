@@ -42,11 +42,20 @@ jobs:
       # 仓库里没有任何长期密钥。
       - name: 取 GitHub OIDC token
         if: steps.check.outputs.missing != ''
+        continue-on-error: true      # 没配 WIF 时失败无所谓，下面会回落到 API key
         uses: actions/github-script@v7
         with:
           script: |
             const fs = require('fs');
-            fs.writeFileSync('/tmp/gha-jwt', await core.getIDToken('https://api.anthropic.com'));
+            const jwt = await core.getIDToken('https://api.anthropic.com');
+            fs.writeFileSync('/tmp/gha-jwt', jwt);
+            // 只打印 payload 里的几个 claim，用来和 Console 里的 federation rule 对照。
+            // 不打印 token 本身——那是凭据。
+            const c = JSON.parse(Buffer.from(jwt.split('.')[1], 'base64url').toString());
+            core.info('OIDC claims（拿这些去对 federation rule）:');
+            for (const k of ['iss', 'aud', 'sub', 'repository_owner', 'repository', 'ref', 'event_name']) {
+              core.info(`  ${k} = ${c[k] ?? '(无)'}`);
+            }
 
       - name: 生成 JSON 并重新打包
         id: gen
@@ -59,6 +68,8 @@ jobs:
           ANTHROPIC_ORGANIZATION_ID: ${{ vars.ANTHROPIC_ORGANIZATION_ID }}
           ANTHROPIC_SERVICE_ACCOUNT_ID: ${{ vars.ANTHROPIC_SERVICE_ACCOUNT_ID }}
           ANTHROPIC_WORKSPACE_ID: ${{ vars.ANTHROPIC_WORKSPACE_ID }}
+          # 没用 WIF 就在 Secrets 里放一个 ANTHROPIC_API_KEY，脚本会自动改走这条
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           CLAUDE_MODEL: ${{ vars.CLAUDE_MODEL || 'claude-opus-5' }}
         run: |
           set -euo pipefail
