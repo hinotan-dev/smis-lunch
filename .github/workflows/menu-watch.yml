@@ -1,0 +1,120 @@
+name: 每月抓新菜单
+
+on:
+  schedule:
+    # 每月 25–31 日 00:00 UTC（日本时间 09:00）各跑一次。
+    # 脚本是幂等的：已有的月份直接跳过，所以学校晚几天上传也能接上。
+    - cron: "0 0 25-31 * *"
+  workflow_dispatch:          # 也可以在 Actions 页面手动点一下
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+  id-token: write             # 换取 OIDC JWT，WIF 必需
+
+concurrency:
+  group: menu-watch
+  cancel-in-progress: false
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: 看 PDF 里有没有新月份
+        id: check
+        run: node scripts/check-months.mjs
+
+      - name: 没有新月份就到此为止
+        if: steps.check.outputs.missing == ''
+        run: echo "没有新月份，收工"
+
+      # GitHub 给这次运行签发一个 JWT，SDK 拿它去 Anthropic 换几分钟过期的短期 token。
+      # 仓库里没有任何长期密钥。
+      - name: 取 GitHub OIDC token
+        if: steps.check.outputs.missing != ''
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            fs.writeFileSync('/tmp/gha-jwt', await core.getIDToken('https://api.anthropic.com'));
+
+      - name: 生成 JSON 并重新打包
+        id: gen
+        if: steps.check.outputs.missing != ''
+        env:
+          MISSING: ${{ steps.check.outputs.missing }}
+          PDF: ${{ steps.check.outputs.pdf }}
+          ANTHROPIC_IDENTITY_TOKEN_FILE: /tmp/gha-jwt
+          ANTHROPIC_FEDERATION_RULE_ID: ${{ vars.ANTHROPIC_FEDERATION_RULE_ID }}
+          ANTHROPIC_ORGANIZATION_ID: ${{ vars.ANTHROPIC_ORGANIZATION_ID }}
+          ANTHROPIC_SERVICE_ACCOUNT_ID: ${{ vars.ANTHROPIC_SERVICE_ACCOUNT_ID }}
+          ANTHROPIC_WORKSPACE_ID: ${{ vars.ANTHROPIC_WORKSPACE_ID }}
+          CLAUDE_MODEL: ${{ vars.CLAUDE_MODEL || 'claude-opus-5' }}
+        run: |
+          set -euo pipefail
+          for m in $MISSING; do
+            echo "::group::$m"
+            node scripts/generate-month.mjs "$PDF" "$m"
+            echo "::endgroup::"
+          done
+          node scripts/build.mjs
+
+      - name: 开 PR
+        if: steps.check.outputs.missing != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MONTHS: ${{ steps.check.outputs.missing }}
+          SUMMARY: ${{ steps.gen.outputs.summary }}
+        run: |
+          set -euo pipefail
+          BRANCH="menu/$(echo "$MONTHS" | tr ' ' '-')"
+          git config user.name  "menu-bot"
+          git config user.email "menu-bot@users.noreply.github.com"
+
+          if git ls-remote --exit-code --heads origin "$BRANCH" >/dev/null 2>&1; then
+            echo "分支 $BRANCH 已存在，说明上次已经开过 PR，跳过"
+            exit 0
+          fi
+
+          git checkout -b "$BRANCH"
+          git add data/ index.html seed.generated.js
+          git commit -m "菜单：新增 $MONTHS"
+          git push -u origin "$BRANCH"
+
+          {
+            printf '%s\n\n' "$SUMMARY"
+            printf -- '---\n\n'
+            printf '自动抓取自 https://powerschool.smis.ac.jp/public/cezars.pdf\n\n'
+            printf '已通过机械校验：日期是工作日且属于本月、items 的 kind 顺序、中文非空、过敏原取值、热量区间。\n\n'
+            printf '**看 `data/` 里的 JSON 就行**，`index.html` 是打包产物，diff 很大但不用读。\n\n'
+            printf '合并后 Vercel 会自动部署。\n'
+          } > /tmp/pr-body.md
+
+          gh pr create --title "菜单：新增 $MONTHS" --body-file /tmp/pr-body.md
+
+      - name: 失败时开 issue
+        if: failure() && steps.check.outputs.missing != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MONTHS: ${{ steps.check.outputs.missing }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          {
+            printf '自动生成或校验没通过，[看运行日志](%s)。\n\n' "$RUN_URL"
+            printf '常见原因：\n\n'
+            printf -- '- PDF 版式变了，或某天的格子结构特殊 → 把 PDF 丢给 Claude 手工生成一份，放进 `data/` 再跑 `npm run build`\n'
+            printf -- '- 认证 401/403 → 检查 Console 里 federation rule 的匹配条件是否覆盖了这个仓库和分支\n'
+            printf -- '- 余额不足 → Console 里 top up\n'
+          } > /tmp/issue-body.md
+
+          gh issue create --title "菜单抓取失败：$MONTHS" --body-file /tmp/issue-body.md
