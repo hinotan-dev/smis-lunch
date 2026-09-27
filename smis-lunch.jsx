@@ -4,6 +4,14 @@ import { createRoot } from "react-dom/client";
 /* 内置数据：data/ 里的月份由 scripts/gen-seed.mjs 自动收集，加月份不用改这里 */
 import { SEED, SEED_VERSION } from "./seed.generated.js";
 
+/* ------------------------------------------------------------ 字号旋钮 */
+/* 觉得整体偏小就把 SCALE 调大：1.1 = 大 10%，1.25 = 大 25%。
+   下面所有 fontSize 都写成 f(基准值)，基准值保留在原地，所以也可以只改某一处。 */
+const SCALE = 1;
+const f = (px) => Math.round(px * SCALE * 10) / 10;
+/* 输入框有下限：iOS 上小于 16px 会在聚焦时自动放大且不会退回 */
+const fInput = (px) => Math.max(16, f(px));
+
 /* ---------------------------------------------------------------- 主题 */
 const C = {
   paper: "#FFF7E6",
@@ -209,7 +217,7 @@ function Chip({ children, bg, fg, border, size = 11 }) {
         background: bg,
         color: fg,
         border: border ? `1px solid ${border}` : "none",
-        fontSize: size,
+        fontSize: f(size),
         lineHeight: 1.6,
         fontWeight: 600,
         whiteSpace: "nowrap",
@@ -231,7 +239,7 @@ function WarnRibbon({ reason }) {
         color: C.warn,
         borderRadius: 10,
         padding: "7px 10px",
-        fontSize: 12.5,
+        fontSize: f(12.5),
         fontWeight: 700,
         marginBottom: 10,
       }}
@@ -259,7 +267,7 @@ function Row({ item, showZh, label, icon, big }) {
         aria-label={label}
         role="img"
         style={{
-          fontSize: big ? 20 : 17,
+          fontSize: big ? f(20) : f(17),
           lineHeight: 1.15,
           width: 26,
           flexShrink: 0,
@@ -272,7 +280,7 @@ function Row({ item, showZh, label, icon, big }) {
       <div style={{ flex: 1 }}>
         <div
           style={{
-            fontSize: big ? 18 : 15,
+            fontSize: big ? f(18) : f(15),
             fontWeight: big ? 700 : 600,
             color: C.ink,
             lineHeight: 1.28,
@@ -282,7 +290,7 @@ function Row({ item, showZh, label, icon, big }) {
           {item.en}
         </div>
         {showZh && (
-          <div style={{ fontSize: 11.5, color: C.sub, marginTop: 1, lineHeight: 1.35 }}>
+          <div style={{ fontSize: f(11.5), color: C.sub, marginTop: 1, lineHeight: 1.35 }}>
             {item.zh}
           </div>
         )}
@@ -304,7 +312,7 @@ function NoteBox({ date, value, onChange }) {
     <div style={{ marginTop: 12, borderTop: `1px dashed ${C.line}`, paddingTop: 10 }}>
       <div
         style={{
-          fontSize: 10.5,
+          fontSize: f(10.5),
           letterSpacing: 1.2,
           color: C.sub,
           fontWeight: 700,
@@ -326,7 +334,7 @@ function NoteBox({ date, value, onChange }) {
           borderRadius: 10,
           background: "#FFFDF6",
           padding: "9px 10px",
-          fontSize: 16,          /* iOS 上小于 16px 会在聚焦时自动放大且不会退回 */
+          fontSize: fInput(16),
           lineHeight: 1.45,
           fontFamily: BODY,
           color: C.ink,
@@ -362,7 +370,7 @@ const DayCard = React.memo(function DayCard({ date, day, note, onNote, showZh, s
         <span
           style={{
             fontFamily: DISPLAY,
-            fontSize: 30,
+            fontSize: f(30),
             fontWeight: 700,
             color: C.ink,
             lineHeight: 1,
@@ -370,7 +378,7 @@ const DayCard = React.memo(function DayCard({ date, day, note, onNote, showZh, s
         >
           {d.getMonth() + 1}.{d.getDate()}
         </span>
-        <span style={{ fontSize: 13, color: C.sub, fontWeight: 600 }}>{WD[d.getDay()]}</span>
+        <span style={{ fontSize: f(13), color: C.sub, fontWeight: 600 }}>{WD[d.getDay()]}</span>
         <span style={{ flex: 1 }} />
         {isToday && <Chip bg={C.gold} fg="#fff">今天</Chip>}
         {day?.event && (
@@ -381,14 +389,14 @@ const DayCard = React.memo(function DayCard({ date, day, note, onNote, showZh, s
       </div>
 
       {!day && (
-        <div style={{ color: C.sub, fontSize: 13.5, padding: "18px 0" }}>暂无菜单数据</div>
+        <div style={{ color: C.sub, fontSize: f(13.5), padding: "18px 0" }}>暂无菜单数据</div>
       )}
 
       {day?.type === "closed" && (
         <div
           style={{
             color: C.sub,
-            fontSize: 15,
+            fontSize: f(15),
             fontWeight: 600,
             padding: "22px 0",
             textAlign: "center",
@@ -430,7 +438,7 @@ const DayCard = React.memo(function DayCard({ date, day, note, onNote, showZh, s
               </Chip>
             ))}
             <span style={{ flex: 1 }} />
-            <span style={{ fontSize: 10.5, color: C.sub }}>
+            <span style={{ fontSize: f(10.5), color: C.sub }}>
               {day.kcal}kcal · 蛋白 {day.protein}g
             </span>
           </div>
@@ -466,7 +474,7 @@ function MonthView({ months, month, setMonth, dayMap, notes, onPick, today }) {
     <div>
       <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "4px 0 12px" }}>
         <NavBtn disabled={idx <= 0} onClick={() => setMonth(keys[idx - 1])}>‹</NavBtn>
-        <div style={{ flex: 1, textAlign: "center", fontFamily: DISPLAY, fontSize: 20, fontWeight: 700 }}>
+        <div style={{ flex: 1, textAlign: "center", fontFamily: DISPLAY, fontSize: f(20), fontWeight: 700 }}>
           {fmtMonth(month)}
         </div>
         <NavBtn disabled={idx >= keys.length - 1} onClick={() => setMonth(keys[idx + 1])}>›</NavBtn>
@@ -478,7 +486,7 @@ function MonthView({ months, month, setMonth, dayMap, notes, onPick, today }) {
           color: C.warn,
           borderRadius: 10,
           padding: "8px 11px",
-          fontSize: 12.5,
+          fontSize: f(12.5),
           fontWeight: 700,
           marginBottom: 12,
         }}
@@ -488,7 +496,7 @@ function MonthView({ months, month, setMonth, dayMap, notes, onPick, today }) {
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: 4 }}>
         {["一", "二", "三", "四", "五"].map((w) => (
-          <div key={w} style={{ textAlign: "center", fontSize: 11, color: C.sub, fontWeight: 700, paddingBottom: 4 }}>
+          <div key={w} style={{ textAlign: "center", fontSize: f(11), color: C.sub, fontWeight: 700, paddingBottom: 4 }}>
             {w}
           </div>
         ))}
@@ -521,10 +529,10 @@ function MonthView({ months, month, setMonth, dayMap, notes, onPick, today }) {
               }}
             >
               <div style={{ display: "flex", alignItems: "center", gap: 3 }}>
-                <span style={{ fontFamily: DISPLAY, fontSize: 13, fontWeight: 700, color: C.ink }}>
+                <span style={{ fontFamily: DISPLAY, fontSize: f(13), fontWeight: 700, color: C.ink }}>
                   {parse(d).getDate()}
                 </span>
-                {st && !st.ok && <span style={{ color: C.warn, fontSize: 11 }}>▲</span>}
+                {st && !st.ok && <span style={{ color: C.warn, fontSize: f(11) }}>▲</span>}
                 <span style={{ flex: 1 }} />
                 {hasNote && (
                   <span
@@ -534,7 +542,7 @@ function MonthView({ months, month, setMonth, dayMap, notes, onPick, today }) {
               </div>
               <div
                 style={{
-                  fontSize: 10.5,
+                  fontSize: f(10.5),
                   fontWeight: day?.type === "closed" ? 400 : 600,
                   color: day?.type === "closed" ? C.sub : C.ink,
                   lineHeight: 1.28,
@@ -552,7 +560,7 @@ function MonthView({ months, month, setMonth, dayMap, notes, onPick, today }) {
         })}
       </div>
 
-      <div style={{ marginTop: 10, fontSize: 11, color: C.sub, display: "flex", gap: 12 }}>
+      <div style={{ marginTop: 10, fontSize: f(11), color: C.sub, display: "flex", gap: 12 }}>
         <span><span style={{ color: C.warn }}>▲</span> 自备主食</span>
         <span><span style={{ color: C.gold }}>●</span> 有备注</span>
       </div>
@@ -572,7 +580,7 @@ function NavBtn({ children, onClick, disabled }) {
         border: `1px solid ${C.line}`,
         background: C.card,
         color: disabled ? C.line : C.ink,
-        fontSize: 17,
+        fontSize: f(17),
         cursor: disabled ? "default" : "pointer",
         lineHeight: 1,
       }}
@@ -623,7 +631,7 @@ function Settings({ months, localMonths, setLocalMonths, notes, setNotes, prefs,
         background: tab === k ? C.band : "transparent",
         color: C.ink,
         fontWeight: 700,
-        fontSize: 13,
+        fontSize: f(13),
         borderRadius: 9,
         cursor: "pointer",
         fontFamily: BODY,
@@ -659,10 +667,10 @@ function Settings({ months, localMonths, setLocalMonths, notes, setNotes, prefs,
         }}
       >
         <div style={{ display: "flex", alignItems: "center", marginBottom: 12 }}>
-          <div style={{ fontFamily: DISPLAY, fontSize: 20, fontWeight: 700, flex: 1 }}>设置</div>
+          <div style={{ fontFamily: DISPLAY, fontSize: f(20), fontWeight: 700, flex: 1 }}>设置</div>
           <button
             onClick={onClose}
-            style={{ border: "none", background: "none", fontSize: 20, cursor: "pointer", color: C.sub }}
+            style={{ border: "none", background: "none", fontSize: f(20), cursor: "pointer", color: C.sub }}
           >
             ✕
           </button>
@@ -681,7 +689,7 @@ function Settings({ months, localMonths, setLocalMonths, notes, setNotes, prefs,
               color: msg.ok ? C.veg : C.warn,
               padding: "8px 11px",
               borderRadius: 9,
-              fontSize: 12.5,
+              fontSize: f(12.5),
               marginBottom: 12,
               fontWeight: 600,
             }}
@@ -692,7 +700,7 @@ function Settings({ months, localMonths, setLocalMonths, notes, setNotes, prefs,
 
         {tab === "data" && (
           <div>
-            <div style={{ fontSize: 12, color: C.sub, marginBottom: 8 }}>已加载的月份</div>
+            <div style={{ fontSize: f(12), color: C.sub, marginBottom: 8 }}>已加载的月份</div>
             {Object.keys(months).sort().map((m) => (
               <div
                 key={m}
@@ -707,17 +715,17 @@ function Settings({ months, localMonths, setLocalMonths, notes, setNotes, prefs,
                   marginBottom: 6,
                 }}
               >
-                <span style={{ fontWeight: 700, fontSize: 14 }}>{fmtMonth(m)}</span>
+                <span style={{ fontWeight: 700, fontSize: f(14) }}>{fmtMonth(m)}</span>
                 <Chip bg={months[m]._src === "seed" ? C.goldSoft : C.vegBg} fg={months[m]._src === "seed" ? C.ink : C.veg} size={10}>
                   {months[m]._src === "seed" ? "内置" : "本地添加"}
                 </Chip>
-                <span style={{ flex: 1, fontSize: 11, color: C.sub }}>
+                <span style={{ flex: 1, fontSize: f(11), color: C.sub }}>
                   {months[m].days.filter((d) => d.type === "menu").length} 天菜单
                 </span>
                 {months[m]._src === "local" && (
                   <button
                     onClick={() => setLocalMonths(localMonths.filter((x) => x.month !== m))}
-                    style={{ border: "none", background: "none", color: C.warn, fontSize: 12, cursor: "pointer", fontWeight: 700 }}
+                    style={{ border: "none", background: "none", color: C.warn, fontSize: f(12), cursor: "pointer", fontWeight: 700 }}
                   >
                     删除
                   </button>
@@ -725,7 +733,7 @@ function Settings({ months, localMonths, setLocalMonths, notes, setNotes, prefs,
               </div>
             ))}
 
-            <div style={{ fontSize: 12, color: C.sub, margin: "16px 0 6px" }}>
+            <div style={{ fontSize: f(12), color: C.sub, margin: "16px 0 6px" }}>
               添加新月份（粘贴 Claude 生成的 JSON，或选文件）
             </div>
             <textarea
@@ -739,7 +747,7 @@ function Settings({ months, localMonths, setLocalMonths, notes, setNotes, prefs,
                 border: `1px solid ${C.line}`,
                 borderRadius: 10,
                 padding: 10,
-                fontSize: 16,          /* 同上，避免 iOS 聚焦放大 */
+                fontSize: fInput(16),
                 lineHeight: 1.4,
                 fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
                 background: C.card,
@@ -773,7 +781,7 @@ function Settings({ months, localMonths, setLocalMonths, notes, setNotes, prefs,
                 }}
               />
             </div>
-            <div style={{ fontSize: 11, color: C.sub, marginTop: 10, lineHeight: 1.6 }}>
+            <div style={{ fontSize: f(11), color: C.sub, marginTop: 10, lineHeight: 1.6 }}>
               内置月份来自网站代码本身，本地添加的月份只存在这台设备上。同一个月两边都有时，以内置版本为准（更新全站后可以把本地那份删掉）。
             </div>
           </div>
@@ -781,10 +789,10 @@ function Settings({ months, localMonths, setLocalMonths, notes, setNotes, prefs,
 
         {tab === "notes" && (
           <div>
-            <div style={{ fontSize: 12.5, color: C.sub, marginBottom: 10, lineHeight: 1.6 }}>
+            <div style={{ fontSize: f(12.5), color: C.sub, marginBottom: 10, lineHeight: 1.6 }}>
               备注保存在这台设备的浏览器里。换设备或清缓存前先导出。
             </div>
-            <div style={{ fontSize: 13, fontWeight: 700, marginBottom: 10 }}>
+            <div style={{ fontSize: f(13), fontWeight: 700, marginBottom: 10 }}>
               已记录 {Object.values(notes).filter((v) => (v || "").trim()).length} 条
             </div>
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
@@ -829,10 +837,10 @@ function Settings({ months, localMonths, setLocalMonths, notes, setNotes, prefs,
               on={prefs.showVeg}
               onClick={() => setPrefs({ ...prefs, showVeg: !prefs.showVeg })}
             />
-            <div style={{ fontSize: 11.5, color: C.sub, marginTop: 6, lineHeight: 1.6 }}>
+            <div style={{ fontSize: f(11.5), color: C.sub, marginTop: 6, lineHeight: 1.6 }}>
               菜单第二行的 (V) 是给素食者替换主菜用的，默认不显示。
             </div>
-            <div style={{ fontSize: 12, color: C.sub, marginTop: 16, lineHeight: 1.7 }}>
+            <div style={{ fontSize: f(12), color: C.sub, marginTop: 16, lineHeight: 1.7 }}>
               <b style={{ color: C.ink }}>自备主食的判定</b>
               <br />
               当天菜单里有完整的 White Rice → 不提醒；只有 Half Rice、或者根本没有米饭（披萨、意面、汉堡日）→ 标 ▲。
@@ -862,7 +870,7 @@ function Btn({ children, onClick, ghost }) {
         background: ghost ? "transparent" : C.gold,
         color: ghost ? C.ink : "#fff",
         fontWeight: 700,
-        fontSize: 13,
+        fontSize: f(13),
         cursor: "pointer",
         fontFamily: BODY,
       }}
@@ -888,7 +896,7 @@ function Toggle({ label, on, onClick }) {
         fontFamily: BODY,
       }}
     >
-      <span style={{ flex: 1, textAlign: "left", fontSize: 14, color: C.ink, fontWeight: 600 }}>
+      <span style={{ flex: 1, textAlign: "left", fontSize: f(14), color: C.ink, fontWeight: 600 }}>
         {label}
       </span>
       <span
@@ -1046,10 +1054,10 @@ function App() {
         }}
       >
         <div>
-          <div style={{ fontFamily: DISPLAY, fontSize: 22, fontWeight: 700, lineHeight: 1 }}>
+          <div style={{ fontFamily: DISPLAY, fontSize: f(22), fontWeight: 700, lineHeight: 1 }}>
             SMIS LUNCH
           </div>
-          <div style={{ fontSize: 10.5, color: C.sub, letterSpacing: 1, marginTop: 3 }}>
+          <div style={{ fontSize: f(10.5), color: C.sub, letterSpacing: 1, marginTop: 3 }}>
             CEZARS KITCHEN
           </div>
         </div>
@@ -1064,7 +1072,7 @@ function App() {
                 background: view === v ? C.band : "transparent",
                 color: C.ink,
                 fontWeight: 700,
-                fontSize: 12.5,
+                fontSize: f(12.5),
                 padding: "6px 12px",
                 borderRadius: 8,
                 cursor: "pointer",
@@ -1106,7 +1114,7 @@ function App() {
         <>
           <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "2px 0 10px" }}>
             <NavBtn disabled={visIdx <= 0} onClick={() => jumpWeek(-1)}>‹</NavBtn>
-            <div style={{ flex: 1, textAlign: "center", fontSize: 13, color: C.sub, fontWeight: 600 }}>
+            <div style={{ flex: 1, textAlign: "center", fontSize: f(13), color: C.sub, fontWeight: 600 }}>
               {fmtDay(visWeekStart)} – {fmtDay(addDays(visWeekStart, 4))}
             </div>
             {homeIdx >= 0 && (
@@ -1121,7 +1129,7 @@ function App() {
                   borderRadius: 10,
                   height: 34,
                   padding: "0 11px",
-                  fontSize: 12.5,
+                  fontSize: f(12.5),
                   fontWeight: 700,
                   cursor: visIdx === homeIdx ? "default" : "pointer",
                   fontFamily: BODY,
@@ -1178,7 +1186,7 @@ function App() {
         />
       )}
 
-      <div style={{ fontSize: 10.5, color: C.sub, textAlign: "center", padding: "18px 0 8px", lineHeight: 1.7 }}>
+      <div style={{ fontSize: f(10.5), color: C.sub, textAlign: "center", padding: "18px 0 8px", lineHeight: 1.7 }}>
         <a
           href="https://powerschool.smis.ac.jp/public/cezars.pdf"
           target="_blank"
@@ -1188,7 +1196,7 @@ function App() {
             alignItems: "center",
             gap: 5,
             color: C.ink,
-            fontSize: 12.5,
+            fontSize: f(12.5),
             fontWeight: 700,
             textDecoration: "none",
             border: `1px solid ${C.line}`,

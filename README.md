@@ -20,7 +20,9 @@ mkicons_final.py        图标生成
 
 仓库整包推上 Vercel，无需构建步骤——`index.html` 已经是打包结果，随代码一起提交。
 
-`vercel.json` 里显式关掉了构建（`outputDirectory: "."`）。因为仓库里有 `package.json`，Vercel 会自动探测并尝试 `npm run build`，钉死配置免得它自作主张。想反过来让 Vercel 每次自己构建也行，把 `buildCommand` 改成 `"npm run build"` 即可——那样直接在 GitHub 网页上改 `data/` 里的 JSON 也能触发更新。
+`vercel.json` 让 Vercel 每次部署自己跑 `npm run build`。好处是 **`data/` 里的 JSON 就是唯一真相**——在 GitHub 网页上（手机也行）改一行 JSON，部署时会自动重新打包，不用管 `index.html`。
+
+仓库里仍然提交 `index.html`，是为了本地直接打开能看、以及 Vercel 万一挂了还有个能用的产物。要是哪天 Vercel 构建出问题，把 `buildCommand` 改回 `"echo skip"` 就退回纯静态。
 
 ## 加新月份
 
@@ -30,6 +32,29 @@ mkicons_final.py        图标生成
 `.github/workflows/menu-watch.yml` 每月 25–31 日各跑一次，检查学校 PDF 里有没有 `data/` 里还没有的月份。有的话调 Claude API 生成 JSON、跑校验、重新打包，然后开一个 PR。你在手机上看一眼 `data/` 里的 diff，合并即部署。
 
 校验不通过时不开 PR，改开 issue。
+
+### 两道检查
+
+**机械校验**（`validate-month.mjs`）查结构：日期是不是工作日、items 的 kind 顺序、中文有没有漏、过敏原取值合不合法、热量在不在合理区间。查不出内容对不对——过敏原写成任何子集都是"合法"的。
+
+**独立复核**（`verify-month.mjs`）查内容：换另一个模型重读同一份 PDF，只抽能和 PDF 逐字对照的事实字段，和生成结果机械比对：
+
+| 查 | 为什么 |
+|---|---|
+| 过敏原 | 唯一有安全含义的字段，且机械校验完全无能为力 |
+| kcal / 蛋白质 | 和过敏原在 PDF 同一行，顺手 |
+| 六个菜的**英文名** | 抓「整列错位」——某天的菜串到隔壁列时，只看日期和数字是发现不了的 |
+
+**不查中文译名**：没有客观标准，而且词典已经保证了跨月一致性。
+
+复核用不同的模型是有意的——同一个模型重读同一份 PDF 很可能重复同样的误读。默认生成用 `claude-opus-5`、复核用 `claude-sonnet-5`，可以用 repository variable `CLAUDE_MODEL` / `VERIFY_MODEL` 改。
+
+发现不一致**不挡 PR**，只把每一条列在 PR 正文顶部让你逐条确认——复核本身也可能读错。复核调用失败也不挡，只在正文里标一句没跑成。
+
+本地想验证比对逻辑，可以不调 API：
+```bash
+VERIFY_REF=/tmp/ref.json node scripts/verify-month.mjs x.pdf 2026-11
+```
 
 ### 认证：Workload Identity Federation
 
@@ -53,7 +78,9 @@ mkicons_final.py        图标生成
 
 工作流里 `permissions: id-token: write` 是必需的，少了这行取不到 JWT。
 
-**也支持 API key**：给一个 `ANTHROPIC_API_KEY`（这个要放 Secrets）就会自动改走 key，脚本不用改。本地跑的时候通常用这条。
+WIF 是**组织级功能**，需要 admin / owner 角色。个人账户在 Console 里可能根本看不到这个入口，那就走下面的 API key。
+
+**也支持 API key**：在仓库 Settings → Secrets and variables → Actions → **Secrets** 里加一个 `ANTHROPIC_API_KEY` 就行，工作流和脚本都不用改——脚本看环境里有什么自己决定走哪条，工作流两种变量都传了。本地跑通常也用这条。
 
 注意 API 是按量付费，和 Claude 订阅是两套账，Console 里要单独 top up。
 
@@ -84,6 +111,7 @@ MENU_PDF=~/Downloads/cezars.pdf node scripts/check-months.mjs
 | `scripts/check-months.mjs` | 下载 PDF，读出里面有哪几个月，跟 `data/` 比，输出缺的月份 |
 | `scripts/generate-month.mjs` | 把 PDF 交给 Claude API 生成某个月的 JSON，带译名词典和格式范例，生成后自动校验。认证走 WIF 或 API key，由环境变量决定 |
 | `scripts/validate-month.mjs` | 机械校验：日期是工作日且属于本月、items 的 kind 顺序、中文非空、过敏原取值、热量区间 |
+| `scripts/verify-month.mjs` | 独立复核：换**另一个模型**重读 PDF，比对英文菜名、过敏原、kcal、蛋白质，不一致的列进 PR 正文 |
 | `scripts/gen-seed.mjs` | 扫描 `data/` 生成 `seed.generated.js` |
 | `scripts/build.mjs` | gen-seed → esbuild → 内联进 `shell.html` → 写出 `index.html` |
 
@@ -115,6 +143,56 @@ MENU_PDF=~/Downloads/cezars.pdf node scripts/check-months.mjs
 ```
 
 可选字段：`event` / `eventZh`（当天主题，如 Coconut Day）、`staple`（`"ok"` 或 `"warn"`，手动覆盖主食判定）、`kcalNote`。
+
+## 改样式
+
+没有 CSS 文件，样式分两处：
+
+**`shell.html`** —— 只有真正需要 CSS 才能表达的那几条：卡片宽度的响应式断点（`--cardw`）、页面底色、滚动条、聚焦轮廓、设置面板在手机/桌面的不同弹出方式、`prefers-reduced-motion`。
+
+**`smis-lunch.jsx`** —— 其余全部写成内联 style 对象，跟着组件走。改哪个组件的样子，就去那个组件里改：
+
+| 组件 | 管什么 |
+|---|---|
+| `Row` | 菜单里的一行：emoji + 英文 + 中文 |
+| `DayCard` | 周视图的一张日卡 |
+| `NoteBox` | 备注输入框 |
+| `MonthView` | 月历 |
+| `Chip` | 小圆角标签（今天、活动名、过敏原） |
+| `WarnRibbon` | 「需要自备主食」那条 |
+| `Settings` | 设置面板 |
+| `shell`（文件末尾） | 整页的外框、最大宽度、字体栈 |
+
+### 字号
+
+文件顶部有一个全局旋钮：
+
+```js
+const SCALE = 1;      // 1.1 = 整体大 10%
+```
+
+所有 `fontSize` 都写成 `f(基准值)`，所以：
+
+- **整体调大**：改 `SCALE` 一个数
+- **只调某一处**：直接改那个 `f(18)` 里的数字
+
+输入框走 `fInput()`，有 16px 下限——iOS 上小于 16px 会在聚焦时自动放大且不会退回，所以 `SCALE` 调小也不会把这个 bug 放回来。
+
+### 配色
+
+同样在文件顶部的 `C` 对象里，改一个值全站生效。注意 `shell.html` 里的底色和 `manifest.webmanifest` 里的 `theme_color` 是各自独立写的，换主色调时记得一起改。
+
+### 改完怎么生效
+
+改 `smis-lunch.jsx` 或 `shell.html` 之后必须重新打包：
+
+```bash
+npm run build
+```
+
+然后 commit push，Vercel 会再打包一次。**只改 `data/` 里的 JSON 不用打包**，Vercel 自己会做。
+
+本地想边改边看：`npm run build` 之后直接在浏览器打开 `index.html` 就行，不需要起服务器。
 
 ## 菜品 emoji
 
