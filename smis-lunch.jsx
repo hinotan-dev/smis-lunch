@@ -268,11 +268,11 @@ function Row({ item, showZh, label, icon, big, veg }) {
         aria-label={label}
         role="img"
         style={{
-          fontSize: big ? f(20) : f(20),
+          fontSize: f(20),
           width: 26,
           flexShrink: 0,
           textAlign: "center",
-          paddingTop: big ? 1 : 2,
+          paddingTop: 2,
         }}
       >
         {icon}
@@ -281,8 +281,8 @@ function Row({ item, showZh, label, icon, big, veg }) {
         <div
           style={{
             fontSize: big ? f(22) : f(18),
-            fontWeight: big ? 600 : 600,
-            color: big && veg ? C.veg : big ? C.brown : C.ink,
+            fontWeight: 600,
+            color: big ? (veg ? C.veg : C.brown) : C.ink,
             lineHeight: 1.6,
             letterSpacing: -0.1,
           }}
@@ -1150,20 +1150,23 @@ function App() {
             onScroll={onStripScroll}
             style={{
               display: "flex",
-              gap: 10,
+              gap: 0,
               overflowX: "auto",
               scrollSnapType: "x mandatory",
               paddingBottom: 8,
-              marginRight: "var(--marginr)",
+              marginLeft: "var(--marginh)",
+              marginRight: "var(--marginh)",
               WebkitOverflowScrolling: "touch",
             }}
           >
-            {allDays.map((d) => (
+            {allDays.map((d, i) => (
               <div
                 key={d}
                 style={{
                   flex: "0 0 var(--cardw)",
                   scrollSnapAlign: "start",
+                  paddingLeft: 12,
+                  paddingRight: i === allDays.length - 1 ? 12 : 0,
                 }}
               >
                 <DayCard
